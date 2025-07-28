@@ -25,7 +25,7 @@ function encryptImage() {
     downloadLink.href = url;
     downloadLink.download = "encrypted_image.jpg";
     downloadLink.style.display = "inline-block";
-    downloadLink.textContent = "Download Encrypted Image";
+    downloadLink.textContent = "⬇️ Download Encrypted Image";
   };
 
   reader.readAsArrayBuffer(fileInput.files[0]);
