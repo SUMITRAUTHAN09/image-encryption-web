@@ -1,32 +1,37 @@
-function encryptImage() {
-  const fileInput = document.getElementById("imageInput");
-  const keyInput = document.getElementById("keyInput");
-  const downloadLink = document.getElementById("downloadLink");
+async function openAndEncrypt() {
+  const key = parseInt(document.getElementById("keyInput").value);
+  const message = document.getElementById("message");
 
-  if (!fileInput.files[0] || !keyInput.value) {
-    alert("Please select an image and enter a key!");
+  if (isNaN(key)) {
+    alert("Please enter a valid numeric key.");
     return;
   }
 
-  const reader = new FileReader();
-  const key = parseInt(keyInput.value);
+  try {
+    // Ask user to pick a file
+    const [fileHandle] = await window.showOpenFilePicker({
+      types: [{ description: "Images", accept: { "image/*": [".png", ".jpg", ".jpeg"] } }],
+      excludeAcceptAllOption: false,
+      multiple: false
+    });
 
-  reader.onload = function (event) {
-    const arrayBuffer = event.target.result;
+    const file = await fileHandle.getFile();
+    const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
 
+    // XOR each byte
     for (let i = 0; i < uint8Array.length; i++) {
-      uint8Array[i] ^= key; // XOR operation
+      uint8Array[i] ^= key;
     }
 
-    const blob = new Blob([uint8Array], { type: "image/jpeg" });
-    const url = URL.createObjectURL(blob);
+    // Create writable stream to overwrite original file
+    const writable = await fileHandle.createWritable();
+    await writable.write(uint8Array);
+    await writable.close();
 
-    downloadLink.href = url;
-    downloadLink.download = "encrypted_image.jpg";
-    downloadLink.style.display = "inline-block";
-    downloadLink.textContent = "⬇️ Download Encrypted Image";
-  };
-
-  reader.readAsArrayBuffer(fileInput.files[0]);
+    message.innerText = "✔ Image encrypted/decrypted successfully!";
+  } catch (err) {
+    console.error(err);
+    message.innerText = "❌ Operation cancelled or failed.";
+  }
 }
